@@ -1,7 +1,54 @@
+import { useEffect, useContext, useState } from "react";
+
+import { AuthContext } from "../context/AuthProvider";
+import { Link } from "react-router-dom";
+
+// https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/${mode}.json
+
 export default function HomePage() {
-  return (
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const { isLogged, setIsLogged } = useContext(AuthContext);
+
+  useEffect(() => {
+    async function fetchUsers() {
+      const response = await fetch(
+        "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/login.json"
+      );
+      const users = response.json();
+      setRegisteredUsers(users)
+    }
+  }, []);
+
+  const pageContent = isLogged ? (
     <>
-      Home
+      <Link
+        to="/"
+        className="w-full p-3 bg-blue-800 text-white font-semibold rounded-md hover:bg-blue-600"
+      >
+        Admin Panel
+      </Link>
     </>
-  )
+  ) : (
+    <>
+      <Link
+        to="/auth?mode=login"
+        className="w-full p-3 bg-blue-800 text-white font-semibold rounded-md hover:bg-blue-600"
+      >
+        Log in
+      </Link>
+      <Link
+        to="/auth?mode=signup"
+        className="w-full p-3 bg-blue-800 text-white font-semibold rounded-md hover:bg-blue-600"
+      >
+        Sign up
+      </Link>
+    </>
+  );
+
+  return (
+    <h1>
+      {pageContent}
+      {isLogged ? "isLogged" : "is not logged"}
+    </h1>
+  );
 }

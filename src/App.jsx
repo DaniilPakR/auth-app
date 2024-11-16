@@ -1,15 +1,18 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import LoginPage from "./pages/Auth";
+import AuthProvider from "./context/AuthProvider";
 import HomePage from "./pages/HomePage";
-import AuthPage from "./pages/Auth";
+import AuthPage from "./pages/AuthPage";
+import { action as authAction } from "./pages/AuthPage";
 
 const router = createBrowserRouter([
-  {path: '/', element: <HomePage />},
-  {path: '/auth', element: <AuthPage />}
-])
+  { path: "/", element: <HomePage /> },
+  { path: "/auth", element: <AuthPage />, action: authAction },
+]);
 
 export default function App() {
   return (
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   );
 }
