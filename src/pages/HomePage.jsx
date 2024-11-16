@@ -9,20 +9,12 @@ export default function HomePage() {
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const { isLogged, setIsLogged } = useContext(AuthContext);
 
-  useEffect(() => {
-    async function fetchUsers() {
-      const response = await fetch(
-        "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/login.json"
-      );
-      const users = response.json();
-      setRegisteredUsers(users)
-    }
-  }, []);
+  console.log(registeredUsers)
 
   const pageContent = isLogged ? (
     <>
       <Link
-        to="/"
+        to="/admin"
         className="w-full p-3 bg-blue-800 text-white font-semibold rounded-md hover:bg-blue-600"
       >
         Admin Panel

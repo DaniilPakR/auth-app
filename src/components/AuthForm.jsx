@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Form, Link, useSearchParams } from "react-router-dom";
+import { useError } from "../customHooks/useError";
 
 export default function AuthForm() {
   const [searchParams] = useSearchParams();
@@ -11,7 +12,10 @@ export default function AuthForm() {
   });
 
   const mode = searchParams.get("mode");
-  const linkText = mode === "login" ? "Don't have an account? Sign up!" : "Already have an Account? Log in!";
+  const linkText =
+    mode === "login"
+      ? "Don't have an account? Sign up!"
+      : "Already have an Account? Log in!";
 
   const handleIndividualCheck = (checkbox) => {
     setCheckboxes((prev) => {
@@ -34,11 +38,45 @@ export default function AuthForm() {
 
   return (
     <div className="w-96 p-8 bg-white rounded-lg shadow-lg">
-      <Form method="post">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">{mode === "login" ? "Login" : "Sign Up"}</h2>
-
+      <Form method={`${mode === 'signup' ? 'post' : 'patch'}`}>
+        <div className='flex flex-row justify-between'>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            {mode === "login" ? "Login" : "Sign Up"}
+          </h2>
+          <Link to="/" className="text-blue-500 mt-2 block text-center">
+            Go Back
+          </Link>
+        </div>
+        {mode === 'signup' && <div className="names flex flex-row">
+          <p className="flex flex-col mb-4">
+            <label htmlFor="name" className="text-gray-800">
+              Name
+            </label>
+            <input
+              type="name"
+              id="name"
+              name="name"
+              required
+              className="mr-7 w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </p>
+          <p className="flex flex-col mb-4">
+            <label htmlFor="surname" className="text-gray-800">
+              Surname
+            </label>
+            <input
+              type="surname"
+              id="surname"
+              name="surname"
+              required
+              className="w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </p>
+        </div>}
         <p className="flex flex-col mb-4">
-          <label htmlFor="email" className="text-gray-800">Email</label>
+          <label htmlFor="email" className="text-gray-800">
+            Email
+          </label>
           <input
             type="email"
             id="email"
@@ -49,7 +87,9 @@ export default function AuthForm() {
         </p>
 
         <p className="flex flex-col mb-4">
-          <label htmlFor="password" className="text-gray-800">Password</label>
+          <label htmlFor="password" className="text-gray-800">
+            Password
+          </label>
           <input
             type="password"
             id="password"
@@ -61,7 +101,9 @@ export default function AuthForm() {
 
         {mode === "signup" && (
           <p className="flex flex-col mb-6">
-            <label htmlFor="passwordConfirmation" className="text-gray-800">Confirm Password</label>
+            <label htmlFor="passwordConfirmation" className="text-gray-800">
+              Confirm Password
+            </label>
             <input
               type="password"
               id="passwordConfirmation"
@@ -72,7 +114,7 @@ export default function AuthForm() {
           </p>
         )}
 
-        <div className="mb-6">
+        {mode === 'signup' && <div className="mb-6">
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -114,14 +156,18 @@ export default function AuthForm() {
           <button
             type="button"
             onClick={() => {
-              setCheckboxes({ dataSharing: false, userLicense: false, ageConsent: false });
+              setCheckboxes({
+                dataSharing: false,
+                userLicense: false,
+                ageConsent: false,
+              });
               setIsAllChecked(false);
             }}
             className="mt-2 text-red-500 hover:underline"
           >
             Delete All Selections
           </button>
-        </div>
+        </div>}
 
         <button
           type="submit"
@@ -130,7 +176,10 @@ export default function AuthForm() {
           {mode === "login" ? "Login" : "Sign Up"}
         </button>
 
-        <Link to={`?mode=${mode === "login" ? "signup" : "login"}`} className="text-blue-500 mt-4 block text-center">
+        <Link
+          to={`?mode=${mode === "login" ? "signup" : "login"}`}
+          className="text-blue-500 mt-4 block text-center"
+        >
           {linkText}
         </Link>
       </Form>
