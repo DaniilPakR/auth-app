@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Form, Link, useSearchParams } from "react-router-dom";
-import { useError } from "../customHooks/useError";
+import { useState, useContext } from "react";
+import { Form, Link, useSearchParams, useActionData, useNavigation } from "react-router-dom";
 
 export default function AuthForm() {
+  const data = useActionData();
   const [searchParams] = useSearchParams();
+  const navigation = useNavigation();
   const [isAllChecked, setIsAllChecked] = useState(false);
   const [checkboxes, setCheckboxes] = useState({
     dataSharing: false,
@@ -36,10 +37,12 @@ export default function AuthForm() {
     });
   };
 
+  const isSubmitting = navigation.state === "submitting"
+
   return (
     <div className="w-96 p-8 bg-white rounded-lg shadow-lg">
-      <Form method={`${mode === 'signup' ? 'post' : 'patch'}`}>
-        <div className='flex flex-row justify-between'>
+      <Form method={`${mode === "signup" ? "post" : "patch"}`}>
+        <div className="flex flex-row justify-between">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">
             {mode === "login" ? "Login" : "Sign Up"}
           </h2>
@@ -47,32 +50,40 @@ export default function AuthForm() {
             Go Back
           </Link>
         </div>
-        {mode === 'signup' && <div className="names flex flex-row">
-          <p className="flex flex-col mb-4">
-            <label htmlFor="name" className="text-gray-800">
-              Name
-            </label>
-            <input
-              type="name"
-              id="name"
-              name="name"
-              required
-              className="mr-7 w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </p>
-          <p className="flex flex-col mb-4">
-            <label htmlFor="surname" className="text-gray-800">
-              Surname
-            </label>
-            <input
-              type="surname"
-              id="surname"
-              name="surname"
-              required
-              className="w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </p>
-        </div>}
+        {data && data.message && (
+          <div className="mb-4 p-3 rounded-md bg-red-100 border border-red-500 text-red-700">
+            <p>{data.message}</p>
+          </div>
+        )}
+
+        {mode === "signup" && (
+          <div className="names flex flex-row">
+            <p className="flex flex-col mb-4">
+              <label htmlFor="name" className="text-gray-800">
+                Name
+              </label>
+              <input
+                type="name"
+                id="name"
+                name="name"
+                required
+                className="mr-7 w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </p>
+            <p className="flex flex-col mb-4">
+              <label htmlFor="surname" className="text-gray-800">
+                Surname
+              </label>
+              <input
+                type="surname"
+                id="surname"
+                name="surname"
+                required
+                className="w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </p>
+          </div>
+        )}
         <p className="flex flex-col mb-4">
           <label htmlFor="email" className="text-gray-800">
             Email
@@ -114,71 +125,75 @@ export default function AuthForm() {
           </p>
         )}
 
-        {mode === 'signup' && <div className="mb-6">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={isAllChecked}
-              onChange={handleSelectAll}
-              className="mr-2"
-            />
-            Select All
-          </label>
-          <div className="flex flex-col">
+        {mode === "signup" && (
+          <div className="mb-6">
             <label className="flex items-center">
               <input
                 type="checkbox"
-                checked={checkboxes.dataSharing}
-                onChange={() => handleIndividualCheck("dataSharing")}
+                checked={isAllChecked}
+                onChange={handleSelectAll}
                 className="mr-2"
               />
-              I agree to share my data
+              Select All
             </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={checkboxes.userLicense}
-                onChange={() => handleIndividualCheck("userLicense")}
-                className="mr-2"
-              />
-              I agree to user's license
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={checkboxes.ageConsent}
-                onChange={() => handleIndividualCheck("ageConsent")}
-                className="mr-2"
-              />
-              I am 18 years old or older
-            </label>
+            <div className="flex flex-col">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={checkboxes.dataSharing}
+                  onChange={() => handleIndividualCheck("dataSharing")}
+                  className="mr-2"
+                />
+                I agree to share my data
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={checkboxes.userLicense}
+                  onChange={() => handleIndividualCheck("userLicense")}
+                  className="mr-2"
+                />
+                I agree to user's license
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={checkboxes.ageConsent}
+                  onChange={() => handleIndividualCheck("ageConsent")}
+                  className="mr-2"
+                  required
+                />
+                I am 18 years old or older
+              </label>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCheckboxes({
+                  dataSharing: false,
+                  userLicense: false,
+                  ageConsent: false,
+                });
+                setIsAllChecked(false);
+              }}
+              className="mt-2 text-red-500 hover:underline"
+            >
+              Delete All Selections
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setCheckboxes({
-                dataSharing: false,
-                userLicense: false,
-                ageConsent: false,
-              });
-              setIsAllChecked(false);
-            }}
-            className="mt-2 text-red-500 hover:underline"
-          >
-            Delete All Selections
-          </button>
-        </div>}
+        )}
 
         <button
           type="submit"
-          className="w-full p-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
+          className={`w-full p-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 ${isSubmitting && 'pointer-events-none'}`}
         >
-          {mode === "login" ? "Login" : "Sign Up"}
+          {isSubmitting ? "Submitting..." : mode === "login" ? "Login" : "Sign Up"}
         </button>
 
         <Link
           to={`?mode=${mode === "login" ? "signup" : "login"}`}
           className="text-blue-500 mt-4 block text-center"
+          
         >
           {linkText}
         </Link>

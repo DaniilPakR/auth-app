@@ -4,11 +4,19 @@ import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import { action as authAction } from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
+import ErrorPage from "./pages/ErrorPage";
+import RootPage from "./pages/RootPage";
 
 const router = createBrowserRouter([
-  { path: "/", element: <HomePage /> },
-  { path: "/auth", element: <AuthPage />, action: authAction },
-  { path: "/admin", element: <AdminPage /> }
+  {
+    path: "/",
+    element: <RootPage />,
+    children: [
+      { index: true, element: <HomePage />, errorElement: <ErrorPage /> },
+      { path: "/auth", element: <AuthPage />, action: authAction },
+      { path: "/admin", element: <AdminPage /> },
+    ],
+  },
 ]);
 
 export default function App() {
