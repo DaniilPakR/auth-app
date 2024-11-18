@@ -1,16 +1,11 @@
-import { useEffect, useContext, useState } from "react";
+import { useContext } from "react";
 
 import { AuthContext } from "../context/AuthProvider";
 import { Link, useNavigate } from "react-router-dom";
 
-// https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/${mode}.json
-
 export default function HomePage() {
-  const [registeredUsers, setRegisteredUsers] = useState([]);
   const { isLogged, setIsLogged, showError } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  console.log(registeredUsers);
 
   const pageContent = isLogged ? (
     <>
@@ -40,7 +35,6 @@ export default function HomePage() {
   
   return (
     <h1 className="flex flex-col gap-4">
-      <p>{isLogged ? 'is logged' : 'not logged'}</p>
       <button
         onClick={() => {
           if (isLogged) {

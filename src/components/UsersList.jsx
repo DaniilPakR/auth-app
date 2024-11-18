@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useContext } from "react";
 import { Tooltip } from "react-tooltip";
+
+import {AuthContext} from "./../context/AuthProvider"
 
 export default function UsersList({
   users,
@@ -8,22 +10,25 @@ export default function UsersList({
   onSelectAll,
   filterBy,
 }) {
+
+  const { currentSession } = useContext(AuthContext)
+
   const sortedUsers = useMemo(() => {
-    const clonedUsers = [...users]; // Clone the array to avoid direct mutation
+    const clonedUsers = [...users];
     if (filterBy === "lastSeen") {
       return clonedUsers.sort((a, b) => {
         const lastSeenA = new Date(a.lastSeen[a.lastSeen.length - 1]);
         const lastSeenB = new Date(b.lastSeen[b.lastSeen.length - 1]);
-        return lastSeenB - lastSeenA; // Sort in descending order
+        return lastSeenB - lastSeenA;
       });
     } else if (filterBy === "regDate") {
       return clonedUsers.sort((a, b) => {
         const regDateA = new Date(a.lastSeen[0]);
         const regDateB = new Date(b.lastSeen[0]);
-        return regDateB - regDateA; // Sort in descending order
+        return regDateB - regDateA;
       });
     } else if (filterBy === "name") {
-      return clonedUsers.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name in ascending order
+      return clonedUsers.sort((a, b) => a.name.localeCompare(b.name));
     }
     return clonedUsers;
   }, [filterBy, users]);
@@ -91,7 +96,7 @@ export default function UsersList({
                 />
                 <div>
                   <p className="text-lg font-semibold text-gray-800">
-                    {user.name} {user.surname}
+                    {user.name} {user.surname} {currentSession === user.id && "(You)"}
                   </p>
                   <p className="text-gray-500">{user.email}</p>
                   <p className="text-gray-700 font-semibold">

@@ -1,6 +1,5 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import UsersList from "../components/UsersList";
 import { AuthContext } from "../context/AuthProvider";
@@ -28,7 +27,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Check if the click is outside the dropdownRef element
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setFilters((prevFilters) => ({
           ...prevFilters,
@@ -37,12 +35,10 @@ export default function AdminPage() {
       }
     };
 
-    // Add event listener for clicks outside
     if (filters.optionsShown) {
       document.addEventListener("click", handleClickOutside);
     }
 
-    // Cleanup event listener on component unmount or when options are hidden
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
@@ -86,7 +82,7 @@ export default function AdminPage() {
     fetchUsers();
   }, [updateList]);
 
-  if (isLogged == false) {
+  if (!isLogged) {
     return <Navigate to="/" />;
   }
 
@@ -157,7 +153,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="flex flex-col gap-2 min-h-screen bg-gray-100 p-6">
+    <div className="flex flex-col gap-2 min-h- bg-gray-100 p-6">
       <div className="flex flex-row justify-between items-center">
         <Link
           to="/"
@@ -236,7 +232,6 @@ export default function AdminPage() {
               Filter by
             </button>
 
-            {/* Dropdown Menu */}
             <ul
               className={`absolute mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-10 ${
                 filters.optionsShown ? "block" : "hidden"
