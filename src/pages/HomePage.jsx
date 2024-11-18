@@ -4,13 +4,13 @@ import { AuthContext } from "../context/AuthProvider";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function HomePage() {
-  const { isLogged, setIsLogged, showError } = useContext(AuthContext);
+  const { isLogged, switchIsLogged, showError } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const pageContent = isLogged ? (
     <>
       <button
-        onClick={() => setIsLogged(false)}
+        onClick={() => switchIsLogged()}
         className="w-full p-3 bg-blue-800 text-white font-semibold rounded-md hover:bg-blue-600"
       >
         Log out

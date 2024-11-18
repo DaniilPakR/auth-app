@@ -1,4 +1,4 @@
-import { json, redirect } from "react-router-dom";
+import { redirect } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
 import { authContextReference } from "../context/AuthProvider";
 
@@ -96,6 +96,25 @@ export async function action({ request }) {
 
     const createResponseData = await createResponse.json();
     const userId = createResponseData.name;
+
+    const createId = await fetch(
+      `https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users/${userId}.json`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: userId }),
+      }
+    );
+
+    if (!createId.ok) {
+      return new Response(
+        JSON.stringify({ message: "Error creating user. Please try again." }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
 
     authContextReference.showStatus("Signed up successfully!")
     authContextReference.externalSetIsLogged(true);

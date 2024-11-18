@@ -148,12 +148,19 @@ export default function AdminPage() {
       }
     }
 
+    const automaticallyNavigated = selectedUsers.some(obj => obj === currentSession);
+    console.log(selectedUsers)
     setUpdateList((prev) => prev + 1);
     setSelectedUsers([]);
+    if (automaticallyNavigated && (action === 'block' ||  action === 'delete')) {
+      setCurrentSession('');
+      switchIsLogged();
+      return navigate('/')
+    }
   };
 
   return (
-    <div className="flex flex-col gap-2 min-h- bg-gray-100 p-6">
+    <div className="flex flex-col gap-2 bg-gray-100 p-6">
       <div className="flex flex-row justify-between items-center">
         <Link
           to="/"

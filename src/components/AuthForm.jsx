@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Form, Link, useSearchParams, useActionData, useNavigation } from "react-router-dom";
 
 export default function AuthForm() {
@@ -143,6 +143,7 @@ export default function AuthForm() {
                   checked={checkboxes.dataSharing}
                   onChange={() => handleIndividualCheck("dataSharing")}
                   className="mr-2"
+                  required
                 />
                 I agree to share my data
               </label>
@@ -152,6 +153,7 @@ export default function AuthForm() {
                   checked={checkboxes.userLicense}
                   onChange={() => handleIndividualCheck("userLicense")}
                   className="mr-2"
+                  required
                 />
                 I agree to user's license
               </label>
