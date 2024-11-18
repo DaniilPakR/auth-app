@@ -24,7 +24,7 @@ export default function UsersList({
       return clonedUsers.sort((a, b) => {
         const regDateA = new Date(a.lastSeen[0]);
         const regDateB = new Date(b.lastSeen[0]);
-        return regDateB - regDateA;
+        return regDateA - regDateB;
       });
     } else if (filterBy === "name") {
       return clonedUsers.sort((a, b) => a.name.localeCompare(b.name));

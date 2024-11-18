@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Link, useSearchParams, useActionData, useNavigation } from "react-router-dom";
 
 export default function AuthForm() {
   const data = useActionData();
+  const [dataForErrors, setDataForErrors] = useState()
   const [searchParams] = useSearchParams();
   const navigation = useNavigation();
   const [isAllChecked, setIsAllChecked] = useState(false);
@@ -11,6 +12,18 @@ export default function AuthForm() {
     userLicense: false,
     ageConsent: false,
   });
+  const [errorIsShown, setErrorIsShown] = useState(false);
+
+  useEffect(() => {
+    setDataForErrors(data);
+    setErrorIsShown(true)
+    const timer = setTimeout(() => {
+      setErrorIsShown(false)
+    }, 2500)
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [data]);
 
   const mode = searchParams.get("mode");
   const linkText =
@@ -50,9 +63,9 @@ export default function AuthForm() {
             Go Back
           </Link>
         </div>
-        {data && data.message && (
+        {errorIsShown && dataForErrors && (
           <div className="mb-4 p-3 rounded-md bg-red-100 border border-red-500 text-red-700">
-            <p>{data.message}</p>
+            <p>{dataForErrors.message}</p>
           </div>
         )}
 
@@ -66,7 +79,6 @@ export default function AuthForm() {
                 type="name"
                 id="name"
                 name="name"
-                required
                 className="mr-7 w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </p>
@@ -78,7 +90,6 @@ export default function AuthForm() {
                 type="surname"
                 id="surname"
                 name="surname"
-                required
                 className="w-36 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </p>
@@ -89,10 +100,9 @@ export default function AuthForm() {
             Email
           </label>
           <input
-            type="email"
+            type="text"
             id="email"
             name="email"
-            required
             className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </p>
@@ -105,7 +115,6 @@ export default function AuthForm() {
             type="password"
             id="password"
             name="password"
-            required
             className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </p>
@@ -119,7 +128,6 @@ export default function AuthForm() {
               type="password"
               id="passwordConfirmation"
               name="passwordConfirmation"
-              required
               className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </p>
@@ -143,7 +151,7 @@ export default function AuthForm() {
                   checked={checkboxes.dataSharing}
                   onChange={() => handleIndividualCheck("dataSharing")}
                   className="mr-2"
-                  required
+                  name="dataSharing"
                 />
                 I agree to share my data
               </label>
@@ -153,7 +161,7 @@ export default function AuthForm() {
                   checked={checkboxes.userLicense}
                   onChange={() => handleIndividualCheck("userLicense")}
                   className="mr-2"
-                  required
+                  name="userLicense"
                 />
                 I agree to user's license
               </label>
@@ -163,7 +171,7 @@ export default function AuthForm() {
                   checked={checkboxes.ageConsent}
                   onChange={() => handleIndividualCheck("ageConsent")}
                   className="mr-2"
-                  required
+                  name="ageConsent"
                 />
                 I am 18 years old or older
               </label>

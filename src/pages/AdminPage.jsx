@@ -254,7 +254,7 @@ export default function AdminPage() {
                   console.log(filters);
                 }}
               >
-                By Last Login Time
+                By Last Login Time (latest)
               </li>
               <li
                 className="cursor-pointer hover:bg-gray-100 p-2"
@@ -266,7 +266,7 @@ export default function AdminPage() {
                   console.log(filters);
                 }}
               >
-                By Date Registered
+                By Date Registered (earliest)
               </li>
               <li
                 className="cursor-pointer hover:bg-gray-100 p-2"

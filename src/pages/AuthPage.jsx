@@ -24,15 +24,78 @@ export async function action({ request }) {
     lastSeen: [new Date().toISOString()],
   };
 
+  const dataSharing = data.get("dataSharing");
+  const userLicense = data.get("userLicense");
+  const ageConsent = data.get("ageConsent");
+
   if (mode === "signup") {
-    if (
-      !authData.email ||
-      !authData.password ||
-      authData.password !== data.get("passwordConfirmation")
+    if (!authData.name) {
+      return new Response(
+        JSON.stringify({
+          message: "Name is missing. Please enter your name.",
+        }),
+        {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else if (!authData.surname) {
+      return new Response(
+        JSON.stringify({
+          message: "Surname is missing. Please enter your surname.",
+        }),
+        {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else if (!authData.email) {
+      return new Response(
+        JSON.stringify({
+          message: "Email is missing. Please enter an email.",
+        }),
+        {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else if (
+      !/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/.test(authData.email)
     ) {
       return new Response(
         JSON.stringify({
-          message: "Invalid input. Please check your entries.",
+          message: "Incorrect email format.",
+        }),
+        {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else if (!authData.password) {
+      return new Response(
+        JSON.stringify({
+          message: "Password is missing. Please enter a password.",
+        }),
+        {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else if (authData.password !== data.get("passwordConfirmation")) {
+      return new Response(
+        JSON.stringify({
+          message:
+            "Passwords don't match. Please make sure your passwords match.",
+        }),
+        {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } else if (!dataSharing || !userLicense || !ageConsent) {
+      return new Response(
+        JSON.stringify({
+          message: "Please check all the required checkboxes.",
         }),
         {
           status: 422,
@@ -40,7 +103,6 @@ export async function action({ request }) {
         }
       );
     }
-
     const response = await fetch(
       "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users.json"
     );
@@ -116,7 +178,7 @@ export async function action({ request }) {
       );
     }
 
-    authContextReference.showStatus("Signed up successfully!")
+    authContextReference.showStatus("Signed up successfully!");
     authContextReference.externalSetIsLogged(true);
     authContextReference.setCurrentSession(userId);
     return redirect("/");
@@ -148,13 +210,21 @@ export async function action({ request }) {
     const matchingUser = usersArray.find(
       (user) =>
         user.email === authData.email &&
-        user.password === authData.password &&
-        user.isBlocked === false
+        user.password === authData.password
     );
 
     if (!matchingUser) {
       return new Response(
-        JSON.stringify({ message: "Invalid login credentials." }),
+        JSON.stringify({ message: `Invalid login credentials.` }),
+        {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+    if (matchingUser.isBlocked === true) {
+      return new Response(
+        JSON.stringify({ message: `This user is blocked.` }),
         {
           status: 501,
           headers: { "Content-Type": "application/json" },
@@ -174,17 +244,13 @@ export async function action({ request }) {
       }
     );
 
+    // updating last seen (login time)
+
     if (!updateResponse.ok) {
-      return new Response(
-        JSON.stringify({ message: "Error updating user activity." }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      console.error("Error updating user last seen.");
     }
 
-    authContextReference.showStatus("Logged in successfully!")
+    authContextReference.showStatus("Logged in successfully!");
     authContextReference.externalSetIsLogged(true);
     authContextReference.setCurrentSession(matchingUser.id);
     return redirect("/");
