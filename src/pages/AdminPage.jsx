@@ -167,9 +167,9 @@ export default function AdminPage() {
   };
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   return (
-    <div className="bg-gray-50 min-h-80 p-6">
+    <div className="bg-gray-50 min-h-72 p-4">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-4 mb-1">
         {/* Block Button */}
         <button
           onClick={() => handleBulkAction("block")}
