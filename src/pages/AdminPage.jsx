@@ -284,7 +284,7 @@ export default function AdminPage() {
           <div className="col-span-3">Name</div>
           <div className="col-span-4">Email</div>
           <div className="col-span-2">Status</div>
-          <div className="col-span-2">Last Seen</div>
+          <div className="col-span-2">Last Login Time</div>
         </div>
         {/* Scrollable User Items */}
         <div className="overflow-y-auto max-h-60 border rounded-lg">

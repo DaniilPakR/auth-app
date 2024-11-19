@@ -101,15 +101,16 @@ export default function UsersList({
               </span>
             </div>
             <div
-              className="col-span-2 text-gray-500"
-              title={`Last Seen: ${lastSeenToolTip}`}
+              className="col-span-2 text-gray-500 cursor-pointer"
+              data-tooltip-id="my-tooltip"
+              data-tooltip-content={`Registration Date: ${regToolTip} Last Login Time: ${lastSeenToolTip}`}
             >
               {readableLastSeenDate}
             </div>
           </div>
         );
       })}
-      <Tooltip id="my-tooltip" />
+      <Tooltip id="my-tooltip" className='!max-w-[430px] !whitespace-normal !break-words' />
     </>
   );
 }
