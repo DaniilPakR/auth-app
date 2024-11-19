@@ -165,7 +165,7 @@ export default function AdminPage() {
       return navigate("/");
     }
   };
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   return (
     <div className="bg-gray-50 min-h-72 p-4">
       {/* Toolbar */}
@@ -226,46 +226,47 @@ export default function AdminPage() {
         {/* Filter Button */}
         <div>
           <button
-          className="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
-          onClick={() =>
-            setFilters((prev) => ({
-              ...prev,
-              optionsShown: !prev.optionsShown,
-            }))
-          }
-        >
-          Filter By
-        </button>
-        {filters.optionsShown && (
-          <ul className="absolute bg-white border border-gray-300 rounded-md shadow-lg mt-2 z-10">
-            <li
-              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
-              onClick={() =>
-                setFilters({ ...filters, selectedValue: "lastSeen" })
-              }
-            >
-              By Last Login Time (latest)
-            </li>
-            <li
-              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
-              onClick={() =>
-                setFilters({ ...filters, selectedValue: "regDate" })
-              }
-            >
-              By Date Registered (earliest)
-            </li>
-            <li
-              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
-              onClick={() => setFilters({ ...filters, selectedValue: "name" })}
-            >
-              By Name
-            </li>
-          </ul>
-        )}
+            className="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
+            onClick={() =>
+              setFilters((prev) => ({
+                ...prev,
+                optionsShown: !prev.optionsShown,
+              }))
+            }
+          >
+            Filter By
+          </button>
+          {filters.optionsShown && (
+            <ul className="absolute bg-white border border-gray-300 rounded-md shadow-lg mt-2 z-10">
+              <li
+                className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                onClick={() =>
+                  setFilters({ ...filters, selectedValue: "lastSeen" })
+                }
+              >
+                By Last Login Time (latest)
+              </li>
+              <li
+                className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                onClick={() =>
+                  setFilters({ ...filters, selectedValue: "regDate" })
+                }
+              >
+                By Date Registered (earliest)
+              </li>
+              <li
+                className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                onClick={() =>
+                  setFilters({ ...filters, selectedValue: "name" })
+                }
+              >
+                By Name
+              </li>
+            </ul>
+          )}
         </div>
-        
-        {/* Filter Dropdown */}
 
+        {/* Filter Dropdown */}
       </div>
       {/* User List */}
       <div className="space-y-4">
@@ -307,5 +308,4 @@ export default function AdminPage() {
       </div>
     </div>
   );
-  
 }
