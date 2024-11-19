@@ -33,24 +33,14 @@ export default function UsersList({
   }, [filterBy, users]);
 
   return (
-    <div>
-    <div className="flex items-center mb-4">
-      <input
-        type="checkbox"
-        onChange={onSelectAll}
-        checked={selectedUsers.length === users.length && users.length > 0}
-        className="mr-2"
-      />
-      <span className="text-sm text-gray-700">Select All</span>
-    </div>
-    <ul className="divide-y divide-gray-200 max-h-80 overflow-y-auto">
+    <>
       {sortedUsers.map((user) => {
         const readableRegDate = user.lastSeen[0].toLocaleDateString("en-US", {
           weekday: "long",
           month: "long",
           day: "numeric",
         });
-  
+
         const readableLastSeenDate = user.lastSeen[
           user.lastSeen.length - 1
         ].toLocaleDateString("en-US", {
@@ -58,7 +48,7 @@ export default function UsersList({
           month: "long",
           day: "numeric",
         });
-  
+
         const regToolTip = user.lastSeen[0].toLocaleDateString("en-US", {
           weekday: "long",
           year: "numeric",
@@ -81,64 +71,45 @@ export default function UsersList({
           second: "numeric",
           hour12: false,
         });
-  
+
         return (
-          <li
+          <div
             key={user.id}
-            className="py-4 px-4 flex items-center justify-between hover:bg-gray-50"
+            className="grid grid-cols-12 items-center border-b border-gray-700 py-3 px-4 hover:bg-gray-50 transition"
           >
-            <div className="flex items-center gap-4">
+            <div className="col-span-1">
               <input
                 type="checkbox"
                 checked={selectedUsers.includes(user.id)}
                 onChange={() => onSelectUser(user.id)}
-                className="mr-2"
+                className="form-checkbox"
               />
-              <div>
-                <p className="text-lg font-semibold text-gray-800">
-                  {user.name} {user.surname}{" "}
-                  {currentSession === user.id && "(You)"}
-                </p>
-                <p className="text-gray-500">{user.email}</p>
-                <p className="text-gray-700 font-semibold">
-                  Status:
-                  <span className="font-medium text-gray-500">
-                    {user.isBlocked ? " Blocked" : " Active"}
-                  </span>
-                </p>
-                <p
-                  data-tooltip-id="my-tooltip"
-                  data-tooltip-content={user.id}
-                  className="text-gray-500 cursor-pointer"
-                >
-                  Hover to view user's id
-                </p>
-              </div>
             </div>
-            <div className="flex flex-col text-sm">
-              <p className="font-semibold">Date Registered:</p>
-              <p
-                data-tooltip-id="my-tooltip"
-                data-tooltip-content={regToolTip}
-                className="cursor-pointer text-gray-600"
-              >
-                {readableRegDate}
-              </p>
-              <p className="font-semibold">Last Login:</p>
-              <p
-                data-tooltip-id="my-tooltip"
-                data-tooltip-content={lastSeenToolTip}
-                className="cursor-pointer text-gray-600"
-              >
-                {readableLastSeenDate}
-              </p>
+            <div className="col-span-3 font-medium">
+              {user.name} {user.surname} {currentSession === user.id && "(You)"}
             </div>
-          </li>
+            <div className="col-span-4 text-gray-600">{user.email}</div>
+            <div className="col-span-2">
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  user.isBlocked
+                    ? "bg-red-100 text-red-700"
+                    : "bg-green-100 text-green-700"
+                }`}
+              >
+                {user.isBlocked ? "Blocked" : "Active"}
+              </span>
+            </div>
+            <div
+              className="col-span-2 text-gray-500"
+              title={`Last Seen: ${lastSeenToolTip}`}
+            >
+              {readableLastSeenDate}
+            </div>
+          </div>
         );
       })}
-    </ul>
-    <Tooltip id="my-tooltip" />
-  </div>
-  
+      <Tooltip id="my-tooltip" />
+    </>
   );
 }

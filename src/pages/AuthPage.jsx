@@ -2,6 +2,8 @@ import { redirect } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
 import { authContextReference } from "../context/AuthProvider";
 
+const url = "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users";
+
 export default function AuthPage() {
   return <AuthForm />;
 }
@@ -104,7 +106,7 @@ export async function action({ request }) {
       );
     }
     const response = await fetch(
-      "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users.json"
+      `${url}.json`
     );
 
     if (!response.ok) {
@@ -137,8 +139,15 @@ export async function action({ request }) {
         }
       );
     }
+
+    const highestIndex =
+      usersArray.length > 0
+        ? Math.max(...usersArray.map((user) => user.index || 0))
+        : 0;
+    authData.index = highestIndex + 1;
+
     const createResponse = await fetch(
-      "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users.json",
+      `${url}.json`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -159,8 +168,8 @@ export async function action({ request }) {
     const createResponseData = await createResponse.json();
     const userId = createResponseData.name;
 
-    const createId = await fetch(
-      `https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users/${userId}.json`,
+    const createIdResponse = await fetch(
+      `${url}/${userId}.json`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -168,7 +177,7 @@ export async function action({ request }) {
       }
     );
 
-    if (!createId.ok) {
+    if (!createIdResponse.ok) {
       return new Response(
         JSON.stringify({ message: "Error creating user. Please try again." }),
         {
@@ -186,7 +195,7 @@ export async function action({ request }) {
 
   if (mode === "login") {
     const response = await fetch(
-      "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users.json"
+      `${url}.json`
     );
 
     if (!response.ok) {
@@ -209,8 +218,7 @@ export async function action({ request }) {
 
     const matchingUser = usersArray.find(
       (user) =>
-        user.email === authData.email &&
-        user.password === authData.password
+        user.email === authData.email && user.password === authData.password
     );
 
     if (!matchingUser) {
@@ -236,15 +244,13 @@ export async function action({ request }) {
     const updatedLastSeen = [...(matchingUser.lastSeen || []), timestamp];
 
     const updateResponse = await fetch(
-      `https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users/${matchingUser.id}.json`,
+      `${url}/${matchingUser.id}.json`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lastSeen: updatedLastSeen }),
       }
     );
-
-    // updating last seen (login time)
 
     if (!updateResponse.ok) {
       console.error("Error updating user last seen.");
@@ -260,4 +266,40 @@ export async function action({ request }) {
     status: 400,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+export async function updateIndexesAfterDeletion() {
+  const response = await fetch(
+    `${url}.json`
+  );
+
+  if (!response.ok) {
+    console.error("Error fetching users for index update.");
+    return;
+  }
+
+  const users = await response.json();
+  const usersArray = users
+    ? Object.keys(users).map((key) => ({
+        id: key,
+        ...users[key],
+      }))
+    : [];
+
+  usersArray.sort((a, b) => a.index - b.index);
+
+  for (let i = 0; i < usersArray.length; i++) {
+    const user = usersArray[i];
+    const newIndex = i + 1;
+    if (user.index !== newIndex) {
+      await fetch(
+        `${url}/${user.id}.json`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index: newIndex }),
+        }
+      );
+    }
+  }
 }
