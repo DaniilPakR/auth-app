@@ -25,16 +25,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-export async function updateData(docId, newData) {
-  const docRef = doc(db, "users", docId);
-  try {
-    await updateDoc(docRef, newData);
-    console.log("Document updated successfully!")
-  } catch (e) {
-    console.error("Error updating document: ", e.message)
-  }
-}
-
 export async function updateLastLogin(docId, date) {
   const docRef = doc(db, "users", docId);
   try {
@@ -88,7 +78,6 @@ export async function registerUser(email, userData) {
     throw new Error("Registration failed.");
   }
 }
-
 
 export async function loginUser(email, password) {
   const userRef = doc(db, "users", email.toLowerCase());
@@ -149,28 +138,6 @@ export async function fetchAllUsers() {
   } catch (error) {
     console.error("Error fetching users:", error.message);
     throw new Error("Failed to fetch users.");
-  }
-}
-
-export async function deleteUser(userId) {
-  try {
-    const userDocRef = doc(db, "users", userId);
-    await deleteDoc(userDocRef);
-    console.log("User updated successfully!")
-  } catch (e) {
-    console.error("Error updating user:", e.message);
-    throw new Error("Failed to update the user.");
-  }
-}
-
-export async function updateUser(userId, updatedData) {
-  try {
-    const userDocRef = doc(db, "users", userId);
-    await updateDoc(userDocRef, { isBlocked: updatedData });
-    console.log("User updated successfully!")
-  } catch (e) {
-    console.error("Error updating user:", e.message);
-    throw new Error("Failed to update the user.");
   }
 }
 

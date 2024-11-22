@@ -54,7 +54,6 @@ export default function AdminPage() {
     async function fetchUsers() {
       setIsLoading(true);
       try {
-        // Reference the Firestore "users" collection
         const usersArray = await fetchAllUsers()
         setUsers(usersArray);
       } catch (error) { 
@@ -231,7 +230,7 @@ export default function AdminPage() {
           <div className="col-span-2">Status</div>
           <div className="col-span-2">Last Login Time</div>
         </div>
-        <div className="overflow-y-auto max-h-60 border rounded-lg">
+        <div className="border rounded-lg">
           {isLoading ? (
             <div className="flex justify-center items-center py-6">
               <div className="loader"></div>

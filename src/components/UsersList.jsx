@@ -7,7 +7,6 @@ export default function UsersList({
   users,
   selectedUsers,
   onSelectUser,
-  onSelectAll,
   filterBy,
 }) {
   const { currentSession } = useContext(AuthContext);
@@ -65,7 +64,7 @@ export default function UsersList({
         return (
           <div
             key={user.email}
-            className="grid grid-cols-12 items-center border-b border-gray-700 py-3 px-4 hover:bg-gray-50 transition"
+            className="grid grid-cols-12 items-center border-b border-gray-700 py-2 px-4 hover:bg-gray-50 transition"
           >
             <div className="col-span-1">
               <input
