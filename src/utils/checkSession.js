@@ -1,33 +1,18 @@
-import { redirect, json } from "react-router-dom";
+import { collection, getDocs } from "firebase/firestore";
 
-import { authContextReference } from "../context/AuthProvider";
-
-// https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users/
+import { db } from "../firebaseConfig";
 
 export const checkSession = async (userId) => {
-  const response = await fetch(
-    "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users.json"
-  );
+  const usersCollectionRef = collection(db, "users");
+  const querySnapshot = await getDocs(usersCollectionRef);
 
-  if (!response.ok) {
-    return json(
-      { message: "Error fetching users." },
-      { status: 500 }
-    );
-  }
+  const usersArray = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+    lastSeen: (doc.data().lastSeen),
+  }));
 
-  const users = await response.json();
-  const usersArray = users
-    ? Object.keys(users).map((key) => ({
-        id: key,
-        ...users[key],
-      }))
-    : [];
-
-  const matchingUser = usersArray.find(
-    (user) =>
-      user.id === userId,
-  );
+  const matchingUser = usersArray.find((user) => user.id === userId);
   if (matchingUser === undefined) {
     console.error("No matching user found for ID:", userId);
     return false;
@@ -37,4 +22,4 @@ export const checkSession = async (userId) => {
   } else {
     return true;
   }
-}
+};

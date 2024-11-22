@@ -1,10 +1,10 @@
 import { useState, useEffect, useContext, useRef } from "react";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 
 import UsersList from "../components/UsersList";
 import { AuthContext } from "../context/AuthProvider";
 import { checkSession } from "../utils/checkSession";
-import { updateIndexesAfterDeletion } from "./AuthPage";
+import { fetchAllUsers, handleAction } from "../firebaseConfig";
 
 export default function AdminPage() {
   const {
@@ -50,38 +50,23 @@ export default function AdminPage() {
   }, [filters, updateList]);
 
   useEffect(() => {
-    setIsLoading(true);
+
     async function fetchUsers() {
+      setIsLoading(true);
       try {
-        const response = await fetch(
-          "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users.json"
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
-
-        const data = await response.json();
-        const usersArray = data
-          ? Object.keys(data).map((key) => ({
-              id: key,
-              ...data[key],
-              lastSeen: data[key].lastSeen.map(
-                (dateString) => new Date(dateString)
-              ),
-            }))
-          : [];
-
+        // Reference the Firestore "users" collection
+        const usersArray = await fetchAllUsers()
         setUsers(usersArray);
-      } catch (error) {
+      } catch (error) { 
         console.error("Error fetching users:", error);
+        showError("Failed to fetch users. Please try again.")
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchUsers();
-  }, [updateList]);
+  }, [updateList, showError]);
 
   if (!isLogged) {
     return <Navigate to="/" />;
@@ -115,48 +100,17 @@ export default function AdminPage() {
     for (const userId of selectedUsers) {
       const user = users.find((user) => user.id === userId);
       if (!user) continue;
-
-      let method = "PATCH";
-      let body = {};
-      if (action === "delete") {
-        method = "DELETE";
-      } else if (action === "block") {
-        body = { isBlocked: true };
-      } else if (action === "unblock") {
-        body = { isBlocked: false };
+      const response = await handleAction(userId, action);
+      if (response.success === true) {
+        showStatus(`${action}ed successfully!`)
+      } else if (response.success === false) {
+        showError(`Failed to ${action} user`)
       }
-
-      try {
-        const response = await fetch(
-          `https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users/${user.id}.json`,
-          {
-            method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          }
-        );
-
-        const capitalizedAction =
-          action.charAt(0).toUpperCase() + action.slice(1);
-
-        showStatus(`${capitalizedAction}ed successfully!`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to ${action} user: ${userId}`);
-        }
-      } catch (error) {
-        console.error(`Error performing ${action} action:`, error);
-      }
-    }
-
-    if (action === "delete") {
-      await updateIndexesAfterDeletion();
     }
 
     const automaticallyNavigated = selectedUsers.some(
       (obj) => obj === currentSession
     );
-    console.log(selectedUsers);
     setUpdateList((prev) => prev + 1);
     setSelectedUsers([]);
     if (automaticallyNavigated && (action === "block" || action === "delete")) {
@@ -167,10 +121,8 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-72 p-4">
-      {/* Toolbar */}
+    <div className="flex flex-col max-w-4xl min-w-4xl p-5 absolute top-1 left-1">
       <div className="flex flex-wrap items-center gap-4 mb-1">
-        {/* Block Button */}
         <button
           onClick={() => handleBulkAction("block")}
           disabled={selectedUsers.length === 0}
@@ -182,7 +134,6 @@ export default function AdminPage() {
         >
           Block
         </button>
-        {/* Unblock Button */}
         <button
           onClick={() => handleBulkAction("unblock")}
           disabled={selectedUsers.length === 0}
@@ -194,7 +145,6 @@ export default function AdminPage() {
         >
           <i className="fa-solid fa-unlock"></i>
         </button>
-        {/* Delete Button */}
         <button
           onClick={() => handleBulkAction("delete")}
           disabled={selectedUsers.length === 0}
@@ -206,7 +156,6 @@ export default function AdminPage() {
         >
           <i className="fa-solid fa-trash-can"></i>
         </button>
-        {/* Update List Button */}
         <button
           className="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
           onClick={async () => {
@@ -223,7 +172,6 @@ export default function AdminPage() {
         >
           Update List
         </button>
-        {/* Filter Button */}
         <div>
           <button
             className="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition"
@@ -265,13 +213,9 @@ export default function AdminPage() {
             </ul>
           )}
         </div>
-
-        {/* Filter Dropdown */}
       </div>
-      {/* User List */}
-      <div className="space-y-4">
-        {/* Heading */}
-        <div className="grid grid-cols-12 py-1 px-4 text-sm font-semibold text-gray-700 border-b border-gray-700">
+      <div className="">
+        <div className="grid grid-cols-12 pt-1 pb-0.5 px-4 text-sm font-semibold text-gray-700 border-b border-gray-700">
           <div className="col-span-1">
             <input
               type="checkbox"
@@ -287,7 +231,6 @@ export default function AdminPage() {
           <div className="col-span-2">Status</div>
           <div className="col-span-2">Last Login Time</div>
         </div>
-        {/* Scrollable User Items */}
         <div className="overflow-y-auto max-h-60 border rounded-lg">
           {isLoading ? (
             <div className="flex justify-center items-center py-6">

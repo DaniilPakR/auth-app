@@ -1,8 +1,7 @@
 import { redirect } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
-import { authContextReference } from "../context/AuthProvider";
-
-const url = "https://auth-app-7f344-default-rtdb.europe-west1.firebasedatabase.app/users";
+import { isEmailUnique, loginUser, registerUser } from "../firebaseConfig";
+import validateSignupData from "../utils/validateSignupData";
 
 export default function AuthPage() {
   return <AuthForm />;
@@ -23,114 +22,20 @@ export async function action({ request }) {
     email: data.get("email"),
     password: data.get("password"),
     isBlocked: false,
-    lastSeen: [new Date().toISOString()],
+    lastSeen: new Date().toISOString(),
+    regDate: new Date().toISOString(),
   };
 
   const dataSharing = data.get("dataSharing");
   const userLicense = data.get("userLicense");
   const ageConsent = data.get("ageConsent");
+  const passwordConfirmation = data.get("passwordConfirmation")
 
   if (mode === "signup") {
-    if (!authData.name) {
-      return new Response(
-        JSON.stringify({
-          message: "Name is missing. Please enter your name.",
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    } else if (!authData.surname) {
-      return new Response(
-        JSON.stringify({
-          message: "Surname is missing. Please enter your surname.",
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    } else if (!authData.email) {
-      return new Response(
-        JSON.stringify({
-          message: "Email is missing. Please enter an email.",
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    } else if (
-      !/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/.test(authData.email)
-    ) {
-      return new Response(
-        JSON.stringify({
-          message: "Incorrect email format.",
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    } else if (!authData.password) {
-      return new Response(
-        JSON.stringify({
-          message: "Password is missing. Please enter a password.",
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    } else if (authData.password !== data.get("passwordConfirmation")) {
-      return new Response(
-        JSON.stringify({
-          message:
-            "Passwords don't match. Please make sure your passwords match.",
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    } else if (!dataSharing || !userLicense || !ageConsent) {
-      return new Response(
-        JSON.stringify({
-          message: "Please check all the required checkboxes.",
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    const response = await fetch(
-      `${url}.json`
-    );
+    validateSignupData(authData, passwordConfirmation, dataSharing, userLicense, ageConsent);
 
-    if (!response.ok) {
-      return new Response(
-        JSON.stringify({ message: "Error fetching existing users." }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const existingUsers = await response.json();
-    const usersArray = existingUsers
-      ? Object.keys(existingUsers).map((key) => ({
-          id: key,
-          ...existingUsers[key],
-        }))
-      : [];
-
-    const emailExists = usersArray.some(
-      (user) => user.email === authData.email
-    );
-    if (emailExists) {
+    const isUnique = await isEmailUnique(authData.email);
+    if (!isUnique) {
       return new Response(
         JSON.stringify({ message: "Email is already registered." }),
         {
@@ -140,126 +45,37 @@ export async function action({ request }) {
       );
     }
 
-    const highestIndex =
-      usersArray.length > 0
-        ? Math.max(...usersArray.map((user) => user.index || 0))
-        : 0;
-    authData.index = highestIndex + 1;
-
-    const createResponse = await fetch(
-      `${url}.json`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(authData),
-      }
-    );
-
-    if (!createResponse.ok) {
+    try {
+      await registerUser(authData.email, {...authData});
+      return redirect("/");
+    } catch (e) {
       return new Response(
-        JSON.stringify({ message: "Error creating user. Please try again." }),
+        JSON.stringify({ message: "Signup failed. Please try again." }),
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
         }
       );
-    }
-
-    const createResponseData = await createResponse.json();
-    const userId = createResponseData.name;
-
-    const createIdResponse = await fetch(
-      `${url}/${userId}.json`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: userId }),
-      }
-    );
-
-    if (!createIdResponse.ok) {
-      return new Response(
-        JSON.stringify({ message: "Error creating user. Please try again." }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    authContextReference.showStatus("Signed up successfully!");
-    authContextReference.externalSetIsLogged(true);
-    authContextReference.setCurrentSession(userId);
-    return redirect("/");
+    };
   }
 
   if (mode === "login") {
-    const response = await fetch(
-      `${url}.json`
-    );
-
-    if (!response.ok) {
+    
+    try {
+      const result = await loginUser(authData.email, authData.password);
+      console.log(result.message);
+      console.log(result.user);
+      return redirect("/");
+    } catch (e) {
+      console.error(e.message)
       return new Response(
-        JSON.stringify({ message: "Error fetching users." }),
+        JSON.stringify({ message: e.message }),
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
         }
       );
     }
-
-    const users = await response.json();
-    const usersArray = users
-      ? Object.keys(users).map((key) => ({
-          id: key,
-          ...users[key],
-        }))
-      : [];
-
-    const matchingUser = usersArray.find(
-      (user) =>
-        user.email === authData.email && user.password === authData.password
-    );
-
-    if (!matchingUser) {
-      return new Response(
-        JSON.stringify({ message: `Invalid login credentials.` }),
-        {
-          status: 501,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    if (matchingUser.isBlocked === true) {
-      return new Response(
-        JSON.stringify({ message: `This user is blocked.` }),
-        {
-          status: 501,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const timestamp = new Date().toISOString();
-    const updatedLastSeen = [...(matchingUser.lastSeen || []), timestamp];
-
-    const updateResponse = await fetch(
-      `${url}/${matchingUser.id}.json`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lastSeen: updatedLastSeen }),
-      }
-    );
-
-    if (!updateResponse.ok) {
-      console.error("Error updating user last seen.");
-    }
-
-    authContextReference.showStatus("Logged in successfully!");
-    authContextReference.externalSetIsLogged(true);
-    authContextReference.setCurrentSession(matchingUser.id);
-    return redirect("/");
   }
 
   return new Response(JSON.stringify({ message: "Invalid operation." }), {
@@ -268,38 +84,3 @@ export async function action({ request }) {
   });
 }
 
-export async function updateIndexesAfterDeletion() {
-  const response = await fetch(
-    `${url}.json`
-  );
-
-  if (!response.ok) {
-    console.error("Error fetching users for index update.");
-    return;
-  }
-
-  const users = await response.json();
-  const usersArray = users
-    ? Object.keys(users).map((key) => ({
-        id: key,
-        ...users[key],
-      }))
-    : [];
-
-  usersArray.sort((a, b) => a.index - b.index);
-
-  for (let i = 0; i < usersArray.length; i++) {
-    const user = usersArray[i];
-    const newIndex = i + 1;
-    if (user.index !== newIndex) {
-      await fetch(
-        `${url}/${user.id}.json`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ index: newIndex }),
-        }
-      );
-    }
-  }
-}
